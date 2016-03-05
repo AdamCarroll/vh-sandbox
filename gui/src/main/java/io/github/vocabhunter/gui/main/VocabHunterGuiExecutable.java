@@ -35,7 +35,8 @@ public class VocabHunterGuiExecutable extends Application {
     public void start(final Stage stage) {
         Thread.currentThread().setUncaughtExceptionHandler((t, e) -> logError(e));
         try {
-            Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+            Dimension screenSize = new Dimension(1366, 768);
+//            Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
             GuiFactory factory = new GuiFactoryImpl(stage, pico);
             ControllerAndView<MainController, Parent> cav = factory.mainWindow();
             double width = screenSize.getWidth() * WINDOW_SIZE_FACTOR;
