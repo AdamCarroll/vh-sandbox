@@ -4,21 +4,23 @@
 
 package io.github.vocabhunter.gui.controller;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.github.vocabhunter.analysis.file.FileStreamer;
 import io.github.vocabhunter.analysis.file.SelectionExportTool;
 import io.github.vocabhunter.analysis.session.EnrichedSessionState;
 import io.github.vocabhunter.analysis.session.FileNameTool;
 import io.github.vocabhunter.analysis.session.SessionSerialiser;
 import io.github.vocabhunter.analysis.session.SessionState;
+import io.github.vocabhunter.analysis.settings.FileListManager;
+import io.github.vocabhunter.gui.common.ControllerAndView;
+import io.github.vocabhunter.gui.common.EnvironmentManager;
 import io.github.vocabhunter.gui.common.GuiConstants;
 import io.github.vocabhunter.gui.common.WebPageTool;
 import io.github.vocabhunter.gui.dialogues.*;
-import io.github.vocabhunter.gui.factory.ControllerAndView;
-import io.github.vocabhunter.gui.factory.GuiFactory;
 import io.github.vocabhunter.gui.model.MainModel;
 import io.github.vocabhunter.gui.model.SessionModel;
 import io.github.vocabhunter.gui.settings.SettingsManager;
-import javafx.application.Platform;
+import io.github.vocabhunter.gui.view.SessionViewTool;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.scene.Node;
@@ -33,10 +35,10 @@ import org.slf4j.LoggerFactory;
 import java.nio.file.Path;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.function.Supplier;
 
 import static javafx.beans.binding.Bindings.not;
 
+@SuppressFBWarnings({"NP_UNWRITTEN_PUBLIC_OR_PROTECTED_FIELD", "UWF_UNWRITTEN_PUBLIC_OR_PROTECTED_FIELD"})
 public class MainController {
     private static final Logger LOG = LoggerFactory.getLogger(MainController.class);
 
@@ -84,6 +86,10 @@ public class MainController {
 
     public BorderPane mainBorderPane;
 
+    public MenuBar menuBar;
+
+    private Stage stage;
+
     private GuiFactory factory;
 
     private FileStreamer fileStreamer;
@@ -92,7 +98,9 @@ public class MainController {
 
     private final MainModel model = new MainModel();
 
-    public void initialise(final Stage stage, final GuiFactory factory, final FileStreamer fileStreamer, final SettingsManager settingsManager) {
+    public void initialise(final Stage stage, final GuiFactory factory, final FileStreamer fileStreamer, final SettingsManager settingsManager,
+                           final FileListManager fileListManager,final EnvironmentManager environmentManager, final WebPageTool webPageTool) {
+        this.stage = stage;
         this.factory = factory;
         this.fileStreamer = fileStreamer;
 
@@ -122,26 +130,28 @@ public class MainController {
 
         handler(buttonSetupFilters, menuSetupFilters, e -> processSetupFilters());
 
-        menuWebsite.setOnAction(e -> WebPageTool.showWebPage(GuiConstants.WEBSITE));
-        menuHowTo.setOnAction(e -> WebPageTool.showWebPage(GuiConstants.WEBPAGE_HELP));
-        menuIssue.setOnAction(e -> WebPageTool.showWebPage(GuiConstants.WEBPAGE_ISSUE));
+        menuWebsite.setOnAction(e -> webPageTool.showWebPage(GuiConstants.WEBSITE));
+        menuHowTo.setOnAction(e -> webPageTool.showWebPage(GuiConstants.WEBPAGE_HELP));
+        menuIssue.setOnAction(e -> webPageTool.showWebPage(GuiConstants.WEBPAGE_ISSUE));
         menuAbout.setOnAction(e -> processAbout());
 
         factory.getExternalEventSource().setListener(e -> processOpenOrNew(e.getFile()));
 
-        prepareTitleHandler(stage);
-        prepareFilterHandler(settingsManager);
+        prepareTitleHandler();
+        prepareFilterHandler(settingsManager, fileListManager);
+
+        menuBar.setUseSystemMenuBar(environmentManager.useSystemMenuBar());
     }
 
-    private void prepareTitleHandler(final Stage stage) {
+    private void prepareTitleHandler() {
         TitleHandler handler = new TitleHandler(model);
 
         handler.prepare();
         stage.titleProperty().bind(model.titleProperty());
     }
 
-    private void prepareFilterHandler(final SettingsManager settingsManager) {
-        FilterHandler handler = new FilterHandler(model, settingsManager);
+    private void prepareFilterHandler(final SettingsManager settingsManager, final FileListManager fileListManager) {
+        FilterHandler handler = new FilterHandler(model, settingsManager, fileListManager);
 
         handler.prepare();
         buttonEnableFilters.selectedProperty().bindBidirectional(menuEnableFilters.selectedProperty());
@@ -160,7 +170,7 @@ public class MainController {
         editOff.setToggleGroup(editGroup);
     }
 
-    private void processFileWithCheck(final Supplier<FileDialogue> chooserFactory, final Consumer<FileDialogue> processor) {
+    private void processFileWithCheck(final Function<Stage, FileDialogue> chooserFactory, final Consumer<FileDialogue> processor) {
         boolean isProcessRequired = unsavedChangesCheck();
 
         if (isProcessRequired) {
@@ -177,8 +187,8 @@ public class MainController {
         }
     }
 
-    private void processFile(final Supplier<FileDialogue> chooserFactory, final Consumer<FileDialogue> processor) {
-        FileDialogue chooser = chooserFactory.get();
+    private void processFile(final Function<Stage, FileDialogue> chooserFactory, final Consumer<FileDialogue> processor) {
+        FileDialogue chooser = chooserFactory.apply(stage);
 
         chooser.showChooser();
         if (chooser.isFileSelected()) {
@@ -250,7 +260,7 @@ public class MainController {
     }
 
     private boolean processSaveAs() {
-        FileDialogue chooser = factory.saveSessionChooser();
+        FileDialogue chooser = factory.saveSessionChooser(stage);
 
         chooser.showChooser();
         if (chooser.isFileSelected()) {
@@ -291,20 +301,16 @@ public class MainController {
     }
 
     private SessionModel addSession(final SessionState state) {
-        SessionModelTool sessionTool = new SessionModelTool(state, model.getFilterSettings(), model.isEnableFilters());
-        if (sessionTool.isFilterError()) {
-            model.setEnableFilters(false);
-            Platform.runLater(() -> {
-                AlertTool.filterErrorAlert();
-            });
-        }
-
+        SessionModelTool sessionTool = new SessionModelTool(state, model.getFilterSettings());
         SessionModel sessionModel = sessionTool.buildModel();
+        SessionViewTool viewTool = new SessionViewTool();
         ControllerAndView<SessionController, Node> cav = factory.session(sessionModel);
-        SessionController controller = cav.getController();
-        mainBorderPane.setCenter(cav.getView());
 
-        keyPressHandler = controller.getKeyPressHandler();
+        viewTool.addAnalysisView(cav.getView());
+        viewTool.addProgressView(factory.progress(sessionModel.getProgress()));
+        mainBorderPane.setCenter(viewTool.getView());
+
+        keyPressHandler = cav.getController().getKeyPressHandler();
 
         return sessionModel;
     }

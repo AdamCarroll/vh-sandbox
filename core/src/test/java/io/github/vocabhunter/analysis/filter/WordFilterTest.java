@@ -11,15 +11,15 @@ import org.junit.Test;
 import java.util.Collections;
 import java.util.List;
 
-import static java.util.Arrays.asList;
+import static io.github.vocabhunter.analysis.core.CollectionTool.listOf;
 import static java.util.stream.Collectors.toList;
 import static org.junit.Assert.assertEquals;
 
 public class WordFilterTest {
-    private static final List<AnalysisWord> WORDS = asList(
-        word("a", 10),
+    private static final List<AnalysisWord> WORDS = listOf(
+        word("A", 10),
         word("don't", 2),
-        word("hello", 2),
+        word("Hello", 2),
         word("banana", 3)
     );
 
@@ -27,26 +27,40 @@ public class WordFilterTest {
     public void testNoFilter() {
         WordFilter filter = new FilterBuilder().build();
 
-        validate(filter, "a", "don't", "hello", "banana");
+        validate(filter, "A", "don't", "Hello", "banana");
     }
 
     @Test
     public void testMinimumOccurrences() {
         WordFilter filter = new FilterBuilder().minimumOccurrences(3).build();
 
-        validate(filter, "a", "banana");
+        validate(filter, "A", "banana");
     }
 
     @Test
     public void testMinimumLetters() {
         WordFilter filter = new FilterBuilder().minimumLetters(5).build();
 
-        validate(filter, "hello", "banana");
+        validate(filter, "Hello", "banana");
     }
 
     @Test
-    public void testMinimumOccurrencesAndMinumumLetters() {
+    public void testMinimumOccurrencesAndMinimumLetters() {
         WordFilter filter = new FilterBuilder().minimumOccurrences(3).minimumLetters(2).build();
+
+        validate(filter, "banana");
+    }
+
+    @Test
+    public void testExcludeInitialCapital() {
+        WordFilter filter = new FilterBuilder().excludeInitialCapital().build();
+
+        validate(filter, "don't", "banana");
+    }
+
+    @Test
+    public void testExcludeInitialCapitalAndMinimumOccurrences() {
+        WordFilter filter = new FilterBuilder().excludeInitialCapital().minimumOccurrences(3).build();
 
         validate(filter, "banana");
     }
@@ -57,7 +71,7 @@ public class WordFilterTest {
             .map(AnalysisWord::getWordIdentifier)
             .collect(toList());
 
-        assertEquals("Filtered words", asList(expected), actual);
+        assertEquals("Filtered words", listOf(expected), actual);
     }
 
     private static AnalysisWord word(final String word, final int uses) {

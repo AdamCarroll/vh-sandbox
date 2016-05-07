@@ -5,15 +5,17 @@
 package io.github.vocabhunter.analysis.session;
 
 import io.github.vocabhunter.analysis.core.VocabHunterException;
+import io.github.vocabhunter.analysis.marked.WordState;
 import org.junit.Test;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
-import static io.github.vocabhunter.analysis.session.WordState.*;
+import static io.github.vocabhunter.analysis.core.CollectionTool.listOf;
+import static io.github.vocabhunter.analysis.marked.WordState.*;
 import static org.junit.Assert.assertEquals;
 
 public class FormatHandlingTest {
@@ -22,6 +24,8 @@ public class FormatHandlingTest {
     private static final String FORMAT_1 = "format1.wordy";
 
     private static final String FORMAT_2 = "format2.wordy";
+
+    private static final String FORMAT_3 = "format3.wordy";
 
     private static final String DOCUMENT_NAME = "test-sample.txt";
 
@@ -48,16 +52,41 @@ public class FormatHandlingTest {
         validate(FORMAT_2);
     }
 
+    @Test
+    public void testVersion3() throws Exception {
+        validate(FORMAT_3);
+    }
+
     private void validate(final String filename) throws Exception {
         Path file = getResourceFile(filename);
         EnrichedSessionState expected = new EnrichedSessionState(EXPECTED_STATE, file);
         EnrichedSessionState actual = read(file);
 
-        assertEquals("Session file", expected, actual);
+        validate(expected, actual);
     }
 
-    private void validate(final SessionState state) {
-        assertEquals("Document name", DOCUMENT_NAME, state.getName());
+    private void validate(final EnrichedSessionState expected, final EnrichedSessionState actual) {
+        Optional<Path> expectedFile = expected.getFile();
+        Optional<Path> actualFile = actual.getFile();
+        assertEquals("Session file reference", expectedFile, actualFile);
+
+        SessionState expectedState = expected.getState();
+        SessionState actualState = actual.getState();
+
+        int expectedFormatVersion = expectedState.getFormatVersion();
+        int actualFormatVersion = actualState.getFormatVersion();
+        assertEquals("Format version", expectedFormatVersion, actualFormatVersion);
+
+        String expectedName = expectedState.getName();
+        String actualName = actualState.getName();
+        assertEquals("Session name", expectedName, actualName);
+
+        List<SessionWord> expectedUses = expectedState.getOrderedUses();
+        List<SessionWord> actualUses = actualState.getOrderedUses();
+        assertEquals("Words", expectedUses, actualUses);
+
+        // This catch-all case should already be covered
+        assertEquals("Session file", expected, actual);
     }
 
     private EnrichedSessionState read(final String file) throws Exception {
@@ -95,14 +124,14 @@ public class FormatHandlingTest {
         use(uses, "jumped", UNSEEN, 1, LINE_1);
         use(uses, "lazy", UNSEEN, 1, LINE_1);
         use(uses, "men", UNSEEN, 1, LINE_2);
-        use(uses, "now", UNSEEN, 1, LINE_2);
+        use(uses, "Now", UNSEEN, 1, LINE_2);
         use(uses, "of", UNSEEN, 1, LINE_2);
         use(uses, "over", UNSEEN, 1, LINE_1);
         use(uses, "party", UNSEEN, 1, LINE_2);
         use(uses, "quick", UNSEEN, 1, LINE_1);
         use(uses, "simple", UNSEEN, 1, LINE_3);
         use(uses, "test", UNSEEN, 1, LINE_3);
-        use(uses, "this", UNSEEN, 1, LINE_3);
+        use(uses, "This", UNSEEN, 1, LINE_3);
         use(uses, "time", UNSEEN, 1, LINE_2);
 
         state.setOrderedUses(uses);
@@ -115,7 +144,7 @@ public class FormatHandlingTest {
 
         sw.setWordIdentifier(word);
         sw.setState(state);
-        sw.setUses(Arrays.asList(lines));
+        sw.setUses(listOf(lines));
         sw.setUseCount(useCount);
 
         uses.add(sw);

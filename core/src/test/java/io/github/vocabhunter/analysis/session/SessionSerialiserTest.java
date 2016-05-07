@@ -5,6 +5,7 @@
 package io.github.vocabhunter.analysis.session;
 
 import io.github.vocabhunter.analysis.core.VocabHunterException;
+import io.github.vocabhunter.analysis.marked.WordState;
 import io.github.vocabhunter.test.utils.TestFileManager;
 import org.junit.After;
 import org.junit.Before;
@@ -13,9 +14,9 @@ import org.junit.Test;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Arrays;
 import java.util.Collections;
 
+import static io.github.vocabhunter.analysis.core.CollectionTool.listOf;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 
@@ -82,7 +83,7 @@ public class SessionSerialiserTest {
         SessionWord word2 = word("Word2", WordState.UNSEEN, "Use 3", "Use 4");
 
         bean.setName(name);
-        bean.setOrderedUses(Arrays.asList(word1, word2));
+        bean.setOrderedUses(listOf(word1, word2));
 
         return bean;
     }
@@ -92,7 +93,7 @@ public class SessionSerialiserTest {
 
         bean.setWordIdentifier(word);
         bean.setState(state);
-        bean.setUses(Arrays.asList(uses));
+        bean.setUses(listOf(uses));
 
         return bean;
     }

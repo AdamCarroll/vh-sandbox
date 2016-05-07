@@ -4,7 +4,7 @@
 
 package io.github.vocabhunter.analysis.session;
 
-public final class FormatVersion {
+public final class SessionFormatVersion {
     /**
      * First version of the format.
      */
@@ -15,9 +15,14 @@ public final class FormatVersion {
      */
     public static final int FORMAT_2 = 2;
 
-    public static final int MAX_SUPPORTED_VERSION = FORMAT_2;
+    /**
+     * Always capitalised words are preserved.
+     */
+    public static final int FORMAT_3 = 3;
 
-    private FormatVersion() {
+    public static final int LATEST_VERSION = FORMAT_3;
+
+    private SessionFormatVersion() {
         // Prevent instantiation - only constants are defined.
     }
 }

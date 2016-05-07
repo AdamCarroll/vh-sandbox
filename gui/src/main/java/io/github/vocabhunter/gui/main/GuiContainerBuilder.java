@@ -2,14 +2,15 @@
  * Open Source Software published under the Apache Licence, Version 2.0.
  */
 
-package io.github.vocabhunter.gui.container;
+package io.github.vocabhunter.gui.main;
 
 import io.github.vocabhunter.analysis.file.FileStreamer;
+import io.github.vocabhunter.analysis.settings.FileListManagerImpl;
 import io.github.vocabhunter.analysis.simple.SimpleAnalyser;
-import io.github.vocabhunter.gui.common.ToolkitManagerImpl;
+import io.github.vocabhunter.gui.common.EnvironmentManagerImpl;
+import io.github.vocabhunter.gui.common.WebPageToolImpl;
 import io.github.vocabhunter.gui.event.CommandLineEventSource;
 import io.github.vocabhunter.gui.event.ExternalEventBroker;
-import io.github.vocabhunter.gui.main.FileDialogueFactoryImpl;
 import io.github.vocabhunter.gui.settings.SettingsManagerImpl;
 import org.picocontainer.DefaultPicoContainer;
 import org.picocontainer.MutablePicoContainer;
@@ -36,8 +37,10 @@ public final class GuiContainerBuilder {
         MutablePicoContainer pico = createBaseContainer(args);
 
         pico.addComponent(SettingsManagerImpl.class);
+        pico.addComponent(FileListManagerImpl.class);
         pico.addComponent(FileDialogueFactoryImpl.class);
-        pico.addComponent(ToolkitManagerImpl.class);
+        pico.addComponent(EnvironmentManagerImpl.class);
+        pico.addComponent(WebPageToolImpl.class);
 
         return pico;
     }

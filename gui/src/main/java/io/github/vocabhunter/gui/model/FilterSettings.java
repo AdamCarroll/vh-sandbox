@@ -8,14 +8,24 @@ import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
 public final class FilterSettings {
     private final int minimumLetters;
 
     private final int minimumOccurrences;
 
-    public FilterSettings(final int minimumLetters, final int minimumOccurrences) {
+    private final boolean allowInitialCapitals;
+
+    private final List<FilterFile> filterFiles;
+
+    public FilterSettings(final int minimumLetters, final int minimumOccurrences, final boolean allowInitialCapitals, final List<FilterFile> filterFiles) {
         this.minimumLetters = minimumLetters;
         this.minimumOccurrences = minimumOccurrences;
+        this.allowInitialCapitals = allowInitialCapitals;
+        this.filterFiles = new ArrayList<>(filterFiles);
     }
 
     public int getMinimumLetters() {
@@ -24,6 +34,14 @@ public final class FilterSettings {
 
     public int getMinimumOccurrences() {
         return minimumOccurrences;
+    }
+
+    public boolean isAllowInitialCapitals() {
+        return allowInitialCapitals;
+    }
+
+    public List<FilterFile> getFilterFiles() {
+        return Collections.unmodifiableList(filterFiles);
     }
 
     @Override
@@ -36,11 +54,13 @@ public final class FilterSettings {
             return false;
         }
 
-        FilterSettings settings = (FilterSettings) o;
+        FilterSettings that = (FilterSettings) o;
 
         return new EqualsBuilder()
-            .append(minimumLetters, settings.minimumLetters)
-            .append(minimumOccurrences, settings.minimumOccurrences)
+            .append(minimumLetters, that.minimumLetters)
+            .append(minimumOccurrences, that.minimumOccurrences)
+            .append(allowInitialCapitals, that.allowInitialCapitals)
+            .append(filterFiles, that.filterFiles)
             .isEquals();
     }
 
@@ -49,6 +69,8 @@ public final class FilterSettings {
         return new HashCodeBuilder()
             .append(minimumLetters)
             .append(minimumOccurrences)
+            .append(allowInitialCapitals)
+            .append(filterFiles)
             .toHashCode();
     }
 
@@ -57,6 +79,8 @@ public final class FilterSettings {
         return new ToStringBuilder(this)
             .append("minimumLetters", minimumLetters)
             .append("minimumOccurrences", minimumOccurrences)
+            .append("allowInitialCapitals", allowInitialCapitals)
+            .append("filterFiles", filterFiles)
             .toString();
     }
 }

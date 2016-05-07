@@ -8,7 +8,8 @@ allprojects {
 
 task wrapper(type: Wrapper) {
     description 'Setup the Gradle wrapper'
-    gradleVersion = '2.11'
+    gradleVersion = '2.13'
+    distributionUrl = "https://services.gradle.org/distributions/gradle-${gradleVersion}-all.zip"
 }
 
 buildscript {
@@ -33,6 +34,7 @@ subprojects {
     apply plugin: 'java'
     apply plugin: 'pmd'
     apply plugin: 'checkstyle'
+    apply plugin: 'findbugs'
     apply plugin: 'jacoco'
     apply plugin: 'com.github.ben-manes.versions'
 
@@ -44,7 +46,7 @@ subprojects {
 
     dependencies {
         testCompile 'junit:junit:4.12'
-        runtime 'ch.qos.logback:logback-classic:1.1.5'
+        runtime 'ch.qos.logback:logback-classic:1.1.7'
     }
 
     pmd {
@@ -61,7 +63,24 @@ subprojects {
         task.logging.setLevel(LogLevel.LIFECYCLE)
     }
 
+    findbugs {
+        toolVersion = '3.0.1'
+        effort = 'max'
+        reportLevel = 'medium'
+    }
+
+    tasks.withType(FindBugs) {
+        reports {
+            xml.enabled = false
+            html.enabled = true
+        }
+    }
+
     jacoco {
         toolVersion = '0.7.6.201602180812'
+    }
+
+    [compileJava, compileTestJava].each { task ->
+        task.options.compilerArgs << "-Xlint:unchecked" << "-Xlint:deprecation" << "-Werror"
     }
 }

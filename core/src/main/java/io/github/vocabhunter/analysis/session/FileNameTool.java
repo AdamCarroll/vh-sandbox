@@ -4,13 +4,15 @@
 
 package io.github.vocabhunter.analysis.session;
 
+import io.github.vocabhunter.analysis.core.VocabHunterException;
+
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
 public final class FileNameTool {
     public static final String SESSION_SUFFIX = ".wordy";
 
-    public static final String EXPORT_SUFFIX = ".txt";
+    private static final String EXPORT_SUFFIX = ".txt";
 
     private FileNameTool() {
         // Prevent instantiation - all methods are static
@@ -25,7 +27,7 @@ public final class FileNameTool {
     }
 
     private static Path ensureFileHasSuffix(final Path file, final String suffix) {
-        String filename = file.getFileName().toString();
+        String filename = filename(file);
 
         if (!filename.contains(".")) {
             String newFilename = filename + suffix;
@@ -39,5 +41,15 @@ public final class FileNameTool {
         }
 
         return file;
+    }
+
+    public static String filename(final Path file) {
+        Path fileName = file.getFileName();
+
+        if (fileName == null) {
+            throw new VocabHunterException("Empty file path");
+        } else {
+            return fileName.toString();
+        }
     }
 }

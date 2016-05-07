@@ -92,10 +92,18 @@ task copyJars(type: Copy) {
 }
 
 jfxbundle.doLast {
-    FileTree tree = fileTree(dir: 'build/bundles').include("**/*.${packageType}")
-    tree.each {File f ->
-        def name = f.getName().replace("-1.0.${packageType}", "-${publishedVersion}.${packageType}")
-        f.renameTo(file("build/bundles/$name"))
+    String bundle = "VocabHunter-${publishedVersion}.${packageType}"
+    FileTree tree = fileTree('build/bundles') {
+        include {
+            it.file.name.equalsIgnoreCase(bundle)
+        }
+    }
+    if (tree.isEmpty()) {
+        throw new GradleException("Unable to create bundle file '$bundle'")
+    } else {
+        tree.each {File f ->
+            println "Created bundle '$f'"
+        }
     }
 }
 
