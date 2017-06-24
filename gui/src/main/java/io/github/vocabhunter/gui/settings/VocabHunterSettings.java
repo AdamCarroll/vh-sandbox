@@ -22,11 +22,15 @@ public class VocabHunterSettings {
 
     private Path exportPath;
 
+    private Path wordListPath;
+
     private int filterMinimumLetters = DEFAULT_MINIMUM_LETTERS;
 
     private int filterMinimumOccurrences = DEFAULT_MINIMUM_OCCURRENCES;
 
     private boolean isAllowInitialCapitals = DEFAULT_ALLOW_INITIAL_CAPITALS;
+
+    private WindowSettings windowSettings;
 
     public Path getDocumentsPath() {
         return documentsPath;
@@ -52,6 +56,14 @@ public class VocabHunterSettings {
         this.exportPath = exportPath;
     }
 
+    public Path getWordListPath() {
+        return wordListPath;
+    }
+
+    public void setWordListPath(final Path wordListPath) {
+        this.wordListPath = wordListPath;
+    }
+
     public int getFilterMinimumLetters() {
         return filterMinimumLetters;
     }
@@ -74,5 +86,13 @@ public class VocabHunterSettings {
 
     public void setAllowInitialCapitals(final boolean allowInitialCapitals) {
         isAllowInitialCapitals = allowInitialCapitals;
+    }
+
+    public WindowSettings getWindowSettings() {
+        return windowSettings;
+    }
+
+    public void setWindowSettings(final WindowSettings windowSettings) {
+        this.windowSettings = windowSettings;
     }
 }

@@ -9,9 +9,12 @@ import io.github.vocabhunter.analysis.settings.BaseSettingsManager;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Optional;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
+import javax.inject.Singleton;
 
+@Singleton
 public class SettingsManagerImpl extends BaseSettingsManager<VocabHunterSettings> implements SettingsManager {
     public static final String SETTINGS_JSON = "settings.json";
 
@@ -54,6 +57,16 @@ public class SettingsManagerImpl extends BaseSettingsManager<VocabHunterSettings
     }
 
     @Override
+    public Path getWordListPath() {
+        return getPath(VocabHunterSettings::getWordListPath);
+    }
+
+    @Override
+    public void setWordListPath(final Path path) {
+        setPath(VocabHunterSettings::setWordListPath, path);
+    }
+
+    @Override
     public int getFilterMinimumLetters() {
         return getValue(VocabHunterSettings::getFilterMinimumLetters);
     }
@@ -81,6 +94,18 @@ public class SettingsManagerImpl extends BaseSettingsManager<VocabHunterSettings
     @Override
     public void setAllowInitialCapitals(final boolean allow) {
         setValue(VocabHunterSettings::setAllowInitialCapitals, allow);
+    }
+
+    @Override
+    public Optional<WindowSettings> getWindowSettings() {
+        WindowSettings value = getValue(VocabHunterSettings::getWindowSettings);
+
+        return Optional.ofNullable(value);
+    }
+
+    @Override
+    public void setWindowSettings(final WindowSettings windowSettings) {
+        setValue(VocabHunterSettings::setWindowSettings, windowSettings);
     }
 
     private <T> T getValue(final Function<VocabHunterSettings, T> getter) {

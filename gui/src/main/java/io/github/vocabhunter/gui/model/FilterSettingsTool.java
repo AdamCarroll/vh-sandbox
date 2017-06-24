@@ -4,52 +4,48 @@
 
 package io.github.vocabhunter.gui.model;
 
-import io.github.vocabhunter.analysis.core.VocabHunterException;
+import io.github.vocabhunter.analysis.core.ThreadPoolTool;
 import io.github.vocabhunter.analysis.filter.FilterBuilder;
 import io.github.vocabhunter.analysis.filter.WordFilter;
-import io.github.vocabhunter.analysis.session.SessionWordsTool;
+import io.github.vocabhunter.analysis.grid.FilterFileWordsExtractor;
+import io.github.vocabhunter.analysis.settings.BaseListedFile;
 
-import java.util.List;
+import java.util.concurrent.Executor;
+import javax.inject.Inject;
+import javax.inject.Singleton;
 
-public final class FilterSettingsTool {
-    private FilterSettingsTool() {
-        // Prevent instantiation - all methods are static
+@Singleton
+public class FilterSettingsTool {
+    private static final int FILTER_READER_THREAD_COUNT = 4;
+
+    private final FilterFileWordsExtractor extractor;
+
+    private final Executor executor;
+
+    @Inject
+    public FilterSettingsTool(final FilterFileWordsExtractor extractor, final ThreadPoolTool threadPoolTool) {
+        this.extractor = extractor;
+        this.executor = threadPoolTool.daemonExecutor("Filter File Reader", FILTER_READER_THREAD_COUNT);
     }
 
-    public static WordFilter filter(final FilterSettings settings, final boolean isFilterEnabled) {
+    public WordFilter filter(final FilterSettings settings) {
         FilterBuilder builder = new FilterBuilder();
 
-        if (isFilterEnabled) {
-            builder = builder.minimumLetters(settings.getMinimumLetters())
-                .minimumOccurrences(settings.getMinimumOccurrences());
+        builder.executor(executor);
+        builder = builder.minimumLetters(settings.getMinimumLetters())
+            .minimumOccurrences(settings.getMinimumOccurrences());
 
-            if (!settings.isAllowInitialCapitals()) {
-                builder = builder.excludeInitialCapital();
-            }
-            for (FilterFile file : settings.getFilterFiles()) {
-                builder = addFilter(builder, file);
-            }
+        if (!settings.isAllowInitialCapitals()) {
+            builder = builder.excludeInitialCapital();
+        }
+        for (BaseListedFile file : settings.getFilterFiles()) {
+            builder = addFilter(builder, file);
         }
 
         return builder.build();
     }
 
-    private static FilterBuilder addFilter(final FilterBuilder builder, final FilterFile file) {
-        List<String> words = getFilteredWords(file);
-
-        return builder.addExcludedWords(words);
-    }
-
-    private static List<String> getFilteredWords(final FilterFile file) {
-        FilterFileMode mode = file.getMode();
-
-        switch (mode) {
-            case KNOWN:
-                return SessionWordsTool.knownWords(file.getFile());
-            case SEEN:
-                return SessionWordsTool.seenWords(file.getFile());
-            default:
-                throw new VocabHunterException(String.format("Unknown filter mode %s", mode));
-        }
+    private FilterBuilder addFilter(final FilterBuilder builder, final BaseListedFile file) {
+        return builder.addExcludedWordsSupplier(() -> extractor.extract(file));
     }
 }

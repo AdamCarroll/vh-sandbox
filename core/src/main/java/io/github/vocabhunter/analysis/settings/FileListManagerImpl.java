@@ -6,7 +6,9 @@ package io.github.vocabhunter.analysis.settings;
 
 import java.nio.file.Path;
 import java.util.List;
+import javax.inject.Singleton;
 
+@Singleton
 public class FileListManagerImpl extends BaseSettingsManager<FileList> implements FileListManager {
     public static final String SETTINGS_JSON = "file-list.json";
 
@@ -19,14 +21,14 @@ public class FileListManagerImpl extends BaseSettingsManager<FileList> implement
     }
 
     @Override
-    public List<ListedFile> getFilteredSessionFiles() {
+    public List<BaseListedFile> getFilterFiles() {
         FileList bean = readSettings();
 
         return bean.getFilterFiles();
     }
 
     @Override
-    public void setFilteredSessionFiles(final List<ListedFile> files) {
+    public void setFilterFiles(final List<BaseListedFile> files) {
         FileList bean = readSettings();
 
         bean.setFilterFiles(files);

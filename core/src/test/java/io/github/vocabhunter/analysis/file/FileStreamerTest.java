@@ -8,18 +8,18 @@ import io.github.vocabhunter.analysis.core.VocabHunterException;
 import io.github.vocabhunter.analysis.model.Analyser;
 import io.github.vocabhunter.analysis.session.EnrichedSessionState;
 import io.github.vocabhunter.analysis.simple.SimpleAnalyser;
+import org.apache.commons.lang3.StringUtils;
 import org.junit.Test;
 
-import java.io.InputStream;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
-import static io.github.vocabhunter.analysis.core.CollectionTool.listOf;
-import static org.junit.Assert.assertEquals;
+import static io.github.vocabhunter.analysis.core.CoreTool.listOf;
+import static org.junit.Assert.*;
 
 public class FileStreamerTest {
     private static final List<String> LINES = listOf(
@@ -46,69 +46,104 @@ public class FileStreamerTest {
     private final FileStreamer target = new FileStreamer(analyser);
 
     @Test(expected = VocabHunterException.class)
-    public void testStreamEmpty() throws Exception {
+    public void testStreamEmpty() {
         validateStream(FILE_EMPTY);
     }
 
     @Test
-    public void testStreamText() throws Exception {
+    public void testEqualSession() {
+        EnrichedSessionState state1 = createNewSession(FILE_TEXT);
+        EnrichedSessionState state2 = createNewSession(FILE_TEXT);
+
+        assertEquals("Equal session", state1, state2);
+    }
+
+    @Test
+    public void testDifferentSession() {
+        EnrichedSessionState state1 = createNewSession(FILE_TEXT);
+        EnrichedSessionState state2 = createNewSession(FILE_WORD);
+
+        assertNotEquals("Different session", state1, state2);
+    }
+
+    @Test
+    public void testEqualHashCode() {
+        EnrichedSessionState state1 = createNewSession(FILE_TEXT);
+        EnrichedSessionState state2 = createNewSession(FILE_TEXT);
+
+        assertEquals("Equal hash code session", state1.hashCode(), state2.hashCode());
+    }
+
+    @Test
+    public void testSessionToString() {
+        EnrichedSessionState state = createNewSession(FILE_TEXT);
+
+        assertTrue("Session toString", StringUtils.isNotBlank(state.toString()));
+    }
+
+    @Test
+    public void testStreamText() {
         validateStream(FILE_TEXT);
     }
 
     @Test
-    public void testStreamWord() throws Exception {
+    public void testStreamWord() {
         validateStream(FILE_WORD);
     }
 
     @Test
-    public void testStreamOpenOffice() throws Exception {
+    public void testStreamOpenOffice() {
         validateStream(FILE_OPEN_OFFICE);
     }
 
     @Test
-    public void testStreamPdf() throws Exception {
+    public void testStreamPdf() {
         validateStream(FILE_PDF);
     }
 
     @Test
-    public void testCreateNewSessionFromText() throws Exception {
+    public void testCreateNewSessionFromText() {
         validateSession(FILE_TEXT, FILE_TEXT, this::createNewSession);
     }
 
     @Test
-    public void testCreateOrOpenSessionFromText() throws Exception {
+    public void testCreateOrOpenSessionFromText() {
         validateSession(FILE_TEXT, FILE_TEXT, this::createOrOpenSession);
     }
 
     @Test
-    public void testCreateOrOpenSessionFromSession() throws Exception {
+    public void testCreateOrOpenSessionFromSession() {
         validateSession(SESSION_FILE, SESSION_NAME, this::createOrOpenSession);
     }
 
-    private void validateStream(final String file) throws Exception {
-        URL resource = getResource(file);
-        try (InputStream in = resource.openStream()) {
-            List<String> result = target.stream(in, Paths.get(file))
-                    .collect(Collectors.toList());
+    private void validateStream(final String file) {
+        List<String> result = target.lines(getFile(file));
 
-            assertEquals("Lines from file", LINES, result);
-        }
+        assertEquals("Lines from file", LINES, result);
     }
 
-    private void validateSession(final String fileName, final String sessionName, final Function<Path, EnrichedSessionState> targetMethod) throws Exception {
-        URL resource = getResource(fileName);
-        Path file = Paths.get(resource.toURI());
-        EnrichedSessionState session = targetMethod.apply(file);
+    private void validateSession(final String fileName, final String sessionName, final Function<String, EnrichedSessionState> targetMethod) {
+        EnrichedSessionState session = targetMethod.apply(fileName);
 
         assertEquals("Session name", sessionName, session.getState().getName());
     }
 
-    private EnrichedSessionState createNewSession(final Path file) {
-        return target.createNewSession(file);
+    private EnrichedSessionState createNewSession(final String file) {
+        return target.createNewSession(getFile(file));
     }
 
-    private EnrichedSessionState createOrOpenSession(final Path file) {
-        return target.createOrOpenSession(file);
+    private EnrichedSessionState createOrOpenSession(final String file) {
+        return target.createOrOpenSession(getFile(file));
+    }
+
+    private Path getFile(final String fileName) {
+        try {
+            URL resource = getResource(fileName);
+
+            return Paths.get(resource.toURI());
+        } catch (final URISyntaxException e) {
+            throw new VocabHunterException("Filename error", e);
+        }
     }
 
     private URL getResource(final String file) {

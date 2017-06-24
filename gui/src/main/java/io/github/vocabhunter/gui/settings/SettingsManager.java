@@ -5,6 +5,7 @@
 package io.github.vocabhunter.gui.settings;
 
 import java.nio.file.Path;
+import java.util.Optional;
 
 public interface SettingsManager {
     Path getDocumentsPath();
@@ -19,6 +20,10 @@ public interface SettingsManager {
 
     void setExportPath(Path path);
 
+    Path getWordListPath();
+
+    void setWordListPath(Path path);
+
     int getFilterMinimumLetters();
 
     void setFilterMinimumLetters(int count);
@@ -30,4 +35,8 @@ public interface SettingsManager {
     boolean isAllowInitialCapitals();
 
     void setAllowInitialCapitals(boolean allow);
+
+    Optional<WindowSettings> getWindowSettings();
+
+    void setWindowSettings(WindowSettings windowSettings);
 }

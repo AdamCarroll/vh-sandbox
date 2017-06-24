@@ -6,41 +6,60 @@ package io.github.vocabhunter.gui.controller;
 
 import io.github.vocabhunter.analysis.session.SessionState;
 import io.github.vocabhunter.analysis.session.SessionWord;
-import io.github.vocabhunter.gui.model.FilterSettings;
-import io.github.vocabhunter.gui.model.SessionModel;
-import io.github.vocabhunter.gui.model.WordModel;
+import io.github.vocabhunter.gui.model.*;
+import io.github.vocabhunter.gui.settings.WindowSettings;
+import io.github.vocabhunter.gui.view.SessionTab;
+import javafx.beans.binding.Bindings;
+import javafx.beans.property.SimpleObjectProperty;
 
 import java.util.List;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+
+import static java.util.stream.Collectors.toList;
 
 public class SessionModelTool {
     private final SessionState state;
 
     private final FilterSettings filterSettings;
 
-    public SessionModelTool(final SessionState state, final FilterSettings filterSettings) {
+    private final SimpleObjectProperty<SessionTab> tabProperty;
+
+    private final WindowSettings windowSettings;
+
+    public SessionModelTool(final SessionState state, final FilterSettings filterSettings, final SimpleObjectProperty<SessionTab> tabProperty, final WindowSettings windowSettings) {
         this.state = state;
         this.filterSettings = filterSettings;
+        this.tabProperty = tabProperty;
+        this.windowSettings = windowSettings;
     }
 
     public SessionModel buildModel() {
-        return new SessionModel(state.getName(), words(state), filterSettings);
+        ProgressModel progressModel = new ProgressModel();
+        PositionModel positionModel = new PositionModel();
+
+        positionModel.analysisModeProperty().bind(Bindings.createBooleanBinding(() -> tabProperty.get().equals(SessionTab.ANALYSIS), tabProperty));
+
+        return new SessionModel(state.getName(), words(state, progressModel), filterSettings, progressModel, positionModel, windowSettings);
     }
 
-    private List<WordModel> words(final SessionState raw) {
+    private List<WordModel> words(final SessionState raw, final ProgressModel progressModel) {
+        List<String> lines = raw.getLines();
         List<SessionWord> orderedUses = raw.getOrderedUses();
         int useCount = orderedUses.size();
 
         return IntStream.range(0, useCount)
-                .mapToObj(n -> wordModel(n, orderedUses.get(n)))
-                .collect(Collectors.toList());
+                .mapToObj(n -> wordModel(lines, n, orderedUses.get(n), progressModel))
+                .collect(toList());
     }
 
-    private WordModel wordModel(final int n, final SessionWord word) {
-        WordModel model = new WordModel(n, word.getWordIdentifier(), word.getUses(), word.getUseCount(), word.getState());
+    private WordModel wordModel(final List<String> lines, final int n, final SessionWord word, final ProgressModel progressModel) {
+        List<String> uses = word.getLineNos().stream()
+            .map(lines::get)
+            .collect(toList());
+        WordModel model = new WordModel(n, word.getWordIdentifier(), uses, word.getUseCount(), word.getState());
 
         model.stateProperty().addListener((o, old, s) -> word.setState(s));
+        model.stateProperty().addListener((o, old, s) -> progressModel.updateWord(old, s));
 
         return model;
     }

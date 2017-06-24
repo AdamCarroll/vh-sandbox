@@ -11,6 +11,8 @@
    -colour-done: royalblue;
    -colour-remaining: lightcoral;
    -colour-unseen-unfiltered: powderblue;
+   -colour-about-link: #0095C9;
+   -colour-search-fail: lightcoral;
 }
 
 .mainWord {
@@ -30,45 +32,139 @@
     -fx-font-weight: bold;
     -fx-border-color: black;
 }
-.wordList .list-cell {
+.wordList .list-cell, .wordList .table-cell {
     -fx-border-color: white;
     -fx-border-width: 1 0 1 0;
 }
-.wordList .list-cell:unseen {
+.wordList .list-cell:unseen, .wordList .table-cell:unseen {
     -fx-background-color: -colour-unseen;
 }
-.wordList .list-cell:known {
+.wordList .list-cell:known, .wordList .table-cell:known {
     -fx-background-color: -gradient-known;
 }
-.wordList .list-cell:unknown {
+.wordList .list-cell:unknown, .wordList .table-cell:unknown {
     -fx-background-color: -gradient-unknown;
 }
-.buttonSave {
-    -fx-graphic: url("images/buttonSave.png");
+.wordList .table-cell:excluded {
+    -fx-background-color: lightgrey;
 }
-.buttonOpen {
-    -fx-graphic: url("images/buttonOpen.png");
+.wordList .table-cell:excluded .text {
+    -fx-strikethrough: true;
+    -fx-fill: red;
 }
-.buttonNew {
-    -fx-graphic: url("images/buttonNew.png");
+.wordList .error {
+    -fx-text-fill: red;
+    -fx-font-size: 18;
 }
-.buttonExport {
-    -fx-graphic: url("images/buttonExport.png");
+.wordCount:fail {
+    -fx-text-fill: red;
+    -fx-font-weight: bold;
 }
-.buttonSetupFilters {
-    -fx-graphic: url("images/buttonFilter.png");
+.filterSessionStateColumn {
+    -fx-alignment: CENTER;
+}
+.columnSelectionBoxScrollPane {
+    -fx-max-height: 100;
+    -fx-min-height: 20;
+    -fx-background-color: transparent;
+}
+.columnSelectionBox {
+    -fx-spacing: 7;
+}
+.buttonSaveIcon {
+    -glyph-name: SAVE;
+}
+.buttonOpenIcon {
+    -glyph-name: FOLDER_OPEN_ALT;
+}
+.buttonNewIcon {
+    -glyph-name: FILE_ALT;
+}
+.buttonExportIcon {
+    -glyph-name: SHARE_SQUARE_ALT;
+}
+.buttonSetupFiltersIcon {
+    -glyph-name: FILTER;
+}
+.buttonSaveIcon, .buttonOpenIcon, .buttonNewIcon, .buttonExportIcon, .buttonSetupFiltersIcon {
+    -glyph-size: 24;
+}
+.buttonFilterSessionIcon {
+    -glyph-name: CHECK_SQUARE;
+    -fx-fill: -colour-known-end;
+}
+.buttonFilterGridIcon, .filterGridIcon {
+    -glyph-name: TABLE;
+}
+.buttonAddIcon {
+    -glyph-name: PLUS;
+    -glyph-size: 10;
+}
+.buttonFilterSessionIcon, .buttonFilterGridIcon {
+    -glyph-size: 20;
 }
 .buttonKnown {
-    -fx-graphic: url("images/known.png");
     -fx-base: -colour-known;
 }
+.buttonKnownIcon, .filterKnownIcon, .filterKnownIconSmall {
+    -glyph-name: CHECK_CIRCLE;
+    -fx-fill: -colour-known-end;
+}
 .buttonUnknown {
-    -fx-graphic: url("images/unknown.png");
     -fx-base: -colour-unknown;
 }
-.buttonUnseen {
-    -fx-graphic: url("images/unseen.png");
+.buttonUnknownIcon, .filterUnknownIcon, .filterUnknownIconSmall {
+    -glyph-name: TIMES_CIRCLE;
+    -fx-fill: -colour-unknown-end;
+}
+.filterKnownIcon, .filterUnknownIcon, .filterGridIcon {
+    -glyph-size: 20;
+}
+.filterKnownIconSmall, .filterUnknownIconSmall {
+    -glyph-size: 15;
+}
+.buttonKnownIcon, .buttonUnknownIcon {
+    -glyph-size: 30;
+}
+.buttonUnseenIcon {
+    -glyph-size: 40;
+    -glyph-name: REFRESH;
+}
+.buttonUnseen, .buttonSearchClose, .buttonSearchUp, .buttonSearchDown {
     -fx-background-color: transparent;
+    -fx-background-insets: 0;
+}
+.buttonSearchCloseIcon {
+    -glyph-size: 15;
+    -glyph-name: CLOSE;
+}
+.buttonSearchUpIcon, .buttonSearchDownIcon {
+    -glyph-size: 15;
+}
+.buttonSearchUpIcon {
+    -glyph-name: CHEVRON_UP;
+}
+.buttonSearchDownIcon {
+    -glyph-name: CHEVRON_DOWN;
+}
+.buttonEditIcon {
+    -glyph-name: PENCIL;
+}
+.buttonDeleteIcon {
+    -glyph-name: TRASH;
+}
+.buttonEditIcon, .buttonDeleteIcon {
+    -glyph-size: 17;
+}
+.searchBoxLabel {
+    -fx-padding: 0 2 0 7;
+}
+.searchBoxLabelIcon {
+    -glyph-size: 13;
+    -glyph-name: SEARCH;
+}
+.searchField:fail {
+    -fx-background-color: -colour-search-fail;
 }
 .noSession {
     -fx-font-size: 16;
@@ -86,17 +182,17 @@
 .title.right {
     -fx-fill: -gradient-unknown;
 }
-.settings {
+.settings, .filter {
     -fx-padding: 20 20 20 20;
 }
-.settings .description {
+.settings .description, .filter .description {
     -fx-font-size: 18;
     -fx-padding: 0 0 10 0;
 }
 .settings .fieldLabel {
     -fx-padding: 10 5 10 5;
 }
-.settings .buttonBar {
+.settings .buttonBar, .filter .buttonBar {
     -fx-padding: 20 0 0 0;
 }
 .settings .settingsGroup {
@@ -104,6 +200,28 @@
     -fx-border-width: 1;
     -fx-padding: 10 10 10 10;
     -fx-border-insets: 5 0 5 0;
+    -fx-hgap: 5;
+    -fx-vgap: 5;
+}
+.filter .mainContent {
+    -fx-spacing: 7;
+}
+.filter .filterInclusionBox {
+    -fx-spacing: 7;
+    -fx-border-color: lightgrey;
+    -fx-border-width: 1;
+    -fx-padding: 10;
+    -fx-border-insets: 5 0 5 0;
+}
+.iconBox {
+    -fx-min-width: 60;
+}
+.iconBoxSmall {
+    -fx-min-width: 30;
+    -fx-spacing: 2;
+}
+.iconBox, .iconBoxSmall {
+    -fx-alignment: center;
 }
 .about BorderPane {
     -fx-padding: 10 20 10 10;
@@ -115,18 +233,20 @@
     -fx-font-size: 20;
     -fx-padding: 7 0 7 0;
 }
-.about .website {
-    -fx-graphic: url("images/home.png");
+.websiteIcon {
+    -glyph-name: HOME;
 }
-.about .twitter {
-    -fx-graphic: url("images/twitter.png");
+.twitterIcon {
+    -glyph-name: TWITTER;
+}
+.websiteIcon, .twitterIcon {
+    -fx-fill: -colour-about-link;
+    -glyph-size: 30;
 }
 .noSession .new {
-    -fx-graphic: url("images/buttonNew.png");
     -fx-padding: 10 0 10 5;
 }
 .noSession .open {
-    -fx-graphic: url("images/buttonOpen.png");
     -fx-padding: 10 0 0 5;
 }
 .wordUse {
@@ -156,4 +276,45 @@
 /* Unseen & filtered */
 .chartResults .default-color3.chart-pie {
     -fx-pie-color: -colour-filtered;
+}
+.chartLegend {
+    -fx-padding: 10;
+    -fx-border-color: lightgrey;
+    -fx-border-width: 1;
+    -fx-border-insets: 0 0 10 0;
+}
+.chartLegend Label {
+    -fx-padding: 5 0 5 5;
+}
+.chartLegend .keyDone {
+    -fx-fill: -colour-done;
+}
+.chartLegend .keyRemaining {
+    -fx-fill: -colour-remaining;
+}
+.chartLegend .keyKnown {
+    -fx-fill: -colour-known-end;
+}
+.chartLegend .keyUnknown {
+    -fx-fill: -colour-unknown-end;
+}
+.chartLegend .keyUnseenUnfiltered {
+    -fx-fill: -colour-unseen-unfiltered;
+}
+.chartLegend .keyFiltered {
+    -fx-fill: -colour-filtered;
+}
+.masker {
+    -fx-background-color: black;
+    -fx-opacity: 0.3;
+}
+.miniGraph {
+  -fx-control-inner-background: -colour-remaining;
+  -fx-accent: -colour-done;
+}
+.miniGraph .bar {
+    -fx-background-insets: 0;
+}
+.miniGraph .track {
+    -fx-background-insets: 0;
 }

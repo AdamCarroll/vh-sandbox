@@ -5,32 +5,36 @@
 package io.github.vocabhunter.gui.controller;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import io.github.vocabhunter.analysis.core.GuiTaskHandler;
 import io.github.vocabhunter.analysis.core.VocabHunterException;
 import io.github.vocabhunter.analysis.filter.WordFilter;
 import io.github.vocabhunter.analysis.marked.MarkTool;
 import io.github.vocabhunter.analysis.marked.WordState;
-import io.github.vocabhunter.gui.model.FilterSettings;
-import io.github.vocabhunter.gui.model.SessionModel;
-import io.github.vocabhunter.gui.model.WordModel;
+import io.github.vocabhunter.gui.model.*;
+import io.github.vocabhunter.gui.services.FilterService;
 import io.github.vocabhunter.gui.view.UseListCell;
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.ObjectBinding;
-import javafx.event.EventHandler;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.ListView;
+import javafx.scene.control.*;
+import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.BorderPane;
+import org.controlsfx.control.textfield.CustomTextField;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.inject.Inject;
+
+import static io.github.vocabhunter.gui.common.EventHandlerTool.combine;
 import static io.github.vocabhunter.gui.dialogues.AlertTool.filterErrorAlert;
-import static io.github.vocabhunter.gui.model.FilterSettingsTool.filter;
 
 @SuppressFBWarnings({"NP_UNWRITTEN_PUBLIC_OR_PROTECTED_FIELD", "UWF_UNWRITTEN_PUBLIC_OR_PROTECTED_FIELD"})
 public class SessionController {
     private static final Logger LOG = LoggerFactory.getLogger(SessionController.class);
+
+    @Inject
+    private FilterService filterService;
 
     public Label mainWord;
 
@@ -48,6 +52,22 @@ public class SessionController {
 
     public ListView<String> useListView;
 
+    public SplitPane splitUseList;
+
+    public SplitPane splitWordList;
+
+    public ToolBar barSearch;
+
+    public CustomTextField fieldSearch;
+
+    public Label labelMatches;
+
+    public Button buttonCloseSearch;
+
+    public Button buttonSearchUp;
+
+    public Button buttonSearchDown;
+
     private SessionModel sessionModel;
 
     private ObjectBinding<WordState> wordStateProperty;
@@ -56,9 +76,13 @@ public class SessionController {
 
     private MainWordHandler mainWordHandler;
 
-    private EventHandler<KeyEvent> keyPressHandler;
+    private WordStateHandler wordStateHandler;
 
-    public void initialise(final SessionModel sessionModel) {
+    private SearchHandler searchHandler;
+
+    private SessionActions sessionActions;
+
+    public void initialise(final GuiTaskHandler guiTaskHandler, final SessionModel sessionModel) {
         this.sessionModel = sessionModel;
 
         wordStateProperty = Bindings.select(sessionModel.currentWordProperty(), "state");
@@ -70,12 +94,17 @@ public class SessionController {
         prepareWordListHandler();
         prepareWordStateHandler();
         prepareMainWord();
+        prepareSearchBar(guiTaskHandler);
+        preparePositionModel();
+        prepareWindowBindings();
 
         mainWordHandler.processWordUpdate(sessionModel.getCurrentWord());
 
         sessionModel.editableProperty().addListener((p, o, v) -> updateWordList());
         sessionModel.filterSettingsProperty().addListener((p, o, v) -> updateWordListIfFilterEnabled());
         sessionModel.enableFiltersProperty().addListener((p, o, v) -> updateWordList());
+
+        sessionActions = new SessionActions(combine(wordStateHandler::processKeyPress, this::processKeyPress), searchHandler::openSearch);
     }
 
     private void prepareWordListHandler() {
@@ -84,15 +113,39 @@ public class SessionController {
     }
 
     private void prepareWordStateHandler() {
-        WordStateHandler handler = new WordStateHandler(buttonUnseen, buttonKnown, buttonUnknown, sessionModel, wordStateProperty, wordListHandler::selectNextWord);
+        wordStateHandler = new WordStateHandler(buttonUnseen, buttonKnown, buttonUnknown, sessionModel, wordStateProperty, wordListHandler::selectNextWord);
 
-        handler.prepareEditButtons();
-        keyPressHandler = handler::processKeyPress;
+        wordStateHandler.prepareEditButtons();
+    }
+
+    private void processKeyPress(final KeyEvent event) {
+        if (KeyCode.ESCAPE.equals(event.getCode())) {
+            searchHandler.closeSearch();
+        }
     }
 
     private void prepareMainWord() {
         mainWordHandler = new MainWordHandler(mainWord, useCountLabel, mainWordPane, sessionModel, wordStateProperty);
         mainWordHandler.prepare();
+    }
+
+    private void prepareSearchBar(final GuiTaskHandler guiTaskHandler) {
+        searchHandler = new SearchHandler(guiTaskHandler, sessionModel, wordListHandler, barSearch, fieldSearch, labelMatches, buttonCloseSearch, buttonSearchUp, buttonSearchDown);
+
+        searchHandler.prepare();
+    }
+
+    private void preparePositionModel() {
+        PositionModel position = sessionModel.getPosition();
+
+        position.positionIndexProperty().bind(wordListView.getSelectionModel().selectedIndexProperty());
+        position.sizeProperty().bind(Bindings.size(wordListView.getItems()));
+        position.editableProperty().bind(sessionModel.editableProperty());
+    }
+
+    private void prepareWindowBindings() {
+        splitUseList.getDividers().get(0).positionProperty().bindBidirectional(sessionModel.splitUsePositionProperty());
+        splitWordList.getDividers().get(0).positionProperty().bindBidirectional(sessionModel.splitWordPositionProperty());
     }
 
     private void updateWordListIfFilterEnabled() {
@@ -105,13 +158,11 @@ public class SessionController {
 
     private void updateWordList() {
         boolean isEditable = sessionModel.isEditable();
-        FilterSettings filterSettings = sessionModel.getFilterSettings();
-        boolean isFilterEnabled = sessionModel.isEnableFilters();
         VocabHunterException exception;
         boolean isFilterSuccess;
 
         try {
-            WordFilter filter = filter(filterSettings, isFilterEnabled);
+            WordFilter filter = filterService.getFilter(sessionModel.isEnableFilters());
             MarkTool<WordModel> markTool = new MarkTool<>(filter, sessionModel.getAllWords());
 
             isFilterSuccess = markTool.isValidFilter();
@@ -120,7 +171,7 @@ public class SessionController {
                 wordListHandler.selectClosestWord(isEditable, filter);
             }
             exception = null;
-        } catch (VocabHunterException e) {
+        } catch (final VocabHunterException e) {
             LOG.error("Failed to activate filter", e);
             exception = e;
             isFilterSuccess = false;
@@ -148,8 +199,7 @@ public class SessionController {
         }
     }
 
-    public EventHandler<KeyEvent> getKeyPressHandler() {
-        return keyPressHandler;
+    public SessionActions getSessionActions() {
+        return sessionActions;
     }
-
 }
