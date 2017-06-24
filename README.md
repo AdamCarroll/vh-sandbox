@@ -1,3 +1,3 @@
 # vh-sandbox
 
-[![Build Status](https://travis-ci.org/AdamCarroll/vh-sandbox.svg?branch=master)](https://travis-ci.org/AdamCarroll/vh-sandbox)
+[![Build Status](https://travis-ci.org/AdamCarroll/vh-sandbox.svg?branch=sonarqube)](https://travis-ci.org/AdamCarroll/vh-sandbox)
