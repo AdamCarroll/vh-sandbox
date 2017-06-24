@@ -31,7 +31,7 @@ cache:
 install: true
 
 script:
-  - ./gradlew clean build -x test -x check sonarqube -info
+  - ./gradlew sonarqube -debug
 
 deploy:
   provider: releases
