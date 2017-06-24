@@ -12,15 +12,15 @@ os:
 sudo: false
 
 addons:
+  apt:
+    packages:
+      - oracle-java8-installer
   sonarcloud:
     organization: vocabhunter
     token:
         secure: "Z17Rec8IztVK5sBrCCHyb/ehUr72+7qhd31xxr5teoaMGYmSu25Dhg4U0lyNgz3qKhZCi3x0pgCcS37m2Lv67WrQaBXMcTW+M3b7VV6xjRQoVp/kVP6Ba2qX4+kqJE49jWrm9vwpavC40L0nBWnC6/2HclTHJy84PW9uZtjoyTRyK1Ywz/wvPt83JfcXcDhSkv5+iLIqzQLT8d+KNT24Q6wnIdlwlPD0lZ8neTC0lNCq9Ab85692JHa4cjRL0NUJ1lrMV/RMUg75Xv7mBEDKgH2U7t7DfZh85Hif16pwR0e/hb7lb5hf7YQlRbBVistpB9rtxjnfctTIc317SW4H4G5F2iLE4UIURaY0Tx8nB+oAXv00ExuSkHlKc+uNtTDxhUxuBoLSQQUrQnCOx3iGuN5nmjKHmTYmTh9DGESGKBxEPTTDJYrR7MjD2/rNBsdGWPvydftMwHF2KQIgxJn7ycNGpjLKkiGHdo9VUHRz3Q1a594bDbhRChyEMj8nw2s5vsCM8Cr4g3szel+MkWw6aFNnuit1UlmwlYGZB95fzybqS54bMG+D339rlwfOm2lMnUy/v06B876vaHrfqHtjbRUEews50509u9Jqi4EzFkHQTA9Qr2UU5uybQ0RLaLhKXpcIZXX0kvao4iu1+k0AUfCfDI33W96/hrsq59vdBcA="
     branches:
       - sonarqube
-  apt:
-    packages:
-      - oracle-java8-installer
 
 before_cache:
   - rm -f $HOME/.gradle/caches/modules-2/modules-2.lock
