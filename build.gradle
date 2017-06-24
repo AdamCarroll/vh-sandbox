@@ -31,6 +31,13 @@ apply plugin: 'base'
 apply plugin: 'net.researchgate.release'
 apply plugin: 'org.sonarqube'
 
+sonarqube {
+    properties {
+        property 'sonar.host.url' 'https://sonarcloud.io'
+        property 'sonar.organization' 'vocabhunter'
+    }
+}
+
 subprojects {
 
     apply plugin: 'java'
