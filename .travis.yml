@@ -27,7 +27,7 @@ cache:
 install: true
 
 script:
-  - ./gradlew clean build jacocoTestReport jfxNative -info
+  - ./gradlew clean build -x test -x check -info
 
 deploy:
   provider: releases
