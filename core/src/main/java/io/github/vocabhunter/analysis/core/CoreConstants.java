@@ -12,6 +12,8 @@ public final class CoreConstants {
 
     public static final double THIS_IS_BAD = 1024 * 1024;
 
+    public static final double SO_IS_THIS = 1025 * 1025;
+
     public static final Charset CHARSET = Charset.forName("UTF-8");
 
     private CoreConstants() {
