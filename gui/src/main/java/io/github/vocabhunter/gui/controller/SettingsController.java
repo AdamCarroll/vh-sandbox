@@ -5,6 +5,7 @@
 package io.github.vocabhunter.gui.controller;
 
 import io.github.vocabhunter.analysis.settings.BaseListedFile;
+import io.github.vocabhunter.gui.common.GuiConstants;
 import io.github.vocabhunter.gui.dialogues.FileDialogue;
 import io.github.vocabhunter.gui.dialogues.FileDialogueFactory;
 import io.github.vocabhunter.gui.dialogues.FileDialogueType;
@@ -123,7 +124,7 @@ public class SettingsController {
         if (dialogue.isFileSelected()) {
             FileFormatType format = dialogue.getFileFormatType();
             FilterFileMode mode = FileFormatTypeTool.getMode(format);
-            FilterFileModel fileModel = new FilterFileModel(dialogue.getSelectedFile(), mode, FilterGridModel.DEFAULT_COLUMNS);
+            FilterFileModel fileModel = new FilterFileModel(dialogue.getSelectedFile(), mode, GuiConstants.DEFAULT_COLUMNS);
 
             showHandler(filterGridHandler, fileModel);
         }

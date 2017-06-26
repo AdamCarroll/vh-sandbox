@@ -9,6 +9,7 @@ import io.github.vocabhunter.analysis.grid.GridLine;
 import io.github.vocabhunter.analysis.grid.TextGrid;
 import io.github.vocabhunter.analysis.grid.TextGridManager;
 import io.github.vocabhunter.gui.common.ColumnNameTool;
+import io.github.vocabhunter.gui.common.GuiConstants;
 import io.github.vocabhunter.gui.dialogues.FileDialogue;
 import io.github.vocabhunter.gui.dialogues.FileDialogueFactory;
 import io.github.vocabhunter.gui.dialogues.FileDialogueType;
@@ -122,7 +123,7 @@ public class FilterGridController extends AbstractFilterController<FilterGridMod
             TextGrid grid = readGrid(file, mode);
 
             unbindCheckboxes(filterModel);
-            filterModel.replaceContent(file, grid, mode, FilterGridModel.DEFAULT_COLUMNS);
+            filterModel.replaceContent(file, grid, mode, GuiConstants.DEFAULT_COLUMNS);
             setupColumnsAndCheckBoxes(filterModel);
         }
     }
