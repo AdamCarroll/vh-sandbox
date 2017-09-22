@@ -88,10 +88,12 @@ subprojects {
         applyTo junitPlatformTest
     }
 
-    jacocoTestReport {
-        reports {
-            xml.enabled true
-            xml.destination file("${buildDir}/reports/jacoco/report.xml")
+    if (it.name in ['core', 'gui']) {
+        jacocoTestReport {
+            reports {
+                xml.enabled true
+                xml.destination file("${buildDir}/reports/jacoco/report.xml")
+            }
         }
     }
 
